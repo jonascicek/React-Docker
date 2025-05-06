@@ -1,12 +1,22 @@
-# React-Docker Todo-App
+# Full-Stack Todo App mit Docker & Datenpersistenz
 
-## Was macht die Anwendung?
-Diese Anwendung ist eine einfache Todo-Liste mit React-Frontend und Node.js-Backend. Die Todos werden im Backend gespeichert und können über das Frontend hinzugefügt oder gelöscht werden. Die Kommunikation läuft über eine REST-API.
+## 🚀 Beschreibung
 
-## Projektstruktur
-- **frontend/**: React-Anwendung
-- **backend/**: Node.js/Express-API
-- **start-containers.sh**: Skript zum Starten der Container
-- **stop-and-remove-containers.sh**: Skript zum Löschen der Container
+Diese Anwendung besteht aus einem React-Frontend und einem Node.js/Express-Backend. Sie kommunizieren über eine REST-API und laufen jeweils in separaten Docker-Containern. Die Todos werden persistent gespeichert – nicht im Arbeitsspeicher, sondern in einer Datei im Backend-Container.
 
-## Containerisierte Anwendung bauen und starten
+## 📁 Projektstruktur
+
+- `frontend/`: React-App
+- `backend/`: Express-API mit Dateibasiertem Speicher (`todos.json`)
+- `.gitignore`, `.dockerignore`: saubere Build- und Repo-Struktur
+- `start-containers.sh`: automatisiertes Skript zum Bauen und Starten der Container
+
+## 🐳 Containerisierte Anwendung starten
+
+### Voraussetzungen:
+- Docker Desktop (läuft)
+- Git Bash / Terminal mit Zugriff auf Docker CLI
+
+### Anwendung starten:
+```bash
+- ./start-containers.sh
