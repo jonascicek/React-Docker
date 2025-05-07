@@ -1,22 +1,39 @@
-# Full-Stack Todo App mit Docker & Datenpersistenz
+# Notiz-App mit Docker, Nginx und Reverse Proxy
 
-## 🚀 Beschreibung
+Diese Anwendung besteht aus einem React-Frontend und einem Node.js-Backend mit Dateibasiertem Speicher für Todos. Beide Container laufen in einem gemeinsamen Docker-Netzwerk und kommunizieren über einen Reverse Proxy (Nginx), der in den Frontend-Container integriert ist.
 
-Diese Anwendung besteht aus einem React-Frontend und einem Node.js/Express-Backend. Sie kommunizieren über eine REST-API und laufen jeweils in separaten Docker-Containern. Die Todos werden persistent gespeichert – nicht im Arbeitsspeicher, sondern in einer Datei im Backend-Container.
+## Funktionen
 
-## 📁 Projektstruktur
+- React-Frontend (mit TailwindCSS)
+- Express-Backend mit persistenter Speicherung in todos.json
+- Kommunikation über Docker-Netzwerk und Reverse Proxy
+- Keine direkte Portfreigabe zwischen Frontend und Backend nötig
 
-- `frontend/`: React-App
-- `backend/`: Express-API mit Dateibasiertem Speicher (`todos.json`)
-- `.gitignore`, `.dockerignore`: saubere Build- und Repo-Struktur
-- `start-containers.sh`: automatisiertes Skript zum Bauen und Starten der Container
+## Start der Anwendung
 
-## 🐳 Containerisierte Anwendung starten
+Die Anwendung wird mit dem Skript `start-proxy-containers.sh` gestartet. Dabei wird automatisch:
 
-### Voraussetzungen:
-- Docker Desktop (läuft)
-- Git Bash / Terminal mit Zugriff auf Docker CLI
+- das Docker-Netzwerk `my-app-network` erstellt (falls nicht vorhanden)
+- das Backend gebaut und mit persistenter Volume-Verknüpfung gestartet
+- das Frontend gebaut, inklusive Nginx-Konfiguration für den Proxy
 
-### Anwendung starten:
-```bash
-- ./start-containers.sh
+Die App ist anschließend erreichbar unter:
+
+http://localhost:8080
+
+
+## Stoppen der Anwendung
+
+Mit dem Skript `stop-proxy-containers.sh` werden beide Container gestoppt und gelöscht. Optional kann auch das Volume entfernt werden.
+
+## Reverse Proxy
+
+Der Nginx-Webserver im Frontend-Container leitet alle Anfragen an `/api/` automatisch an das Backend im selben Docker-Netzwerk weiter. Der Containername `backend-service` wird intern über DNS aufgelöst.
+
+## Build-Argument
+
+Beim Bauen des Frontends wird der Pfad `/api` als Umgebungsvariable übergeben:
+
+--build-arg VITE_API_URL=/api
+
+So kann das React-Frontend relative API-Aufrufe verwenden.

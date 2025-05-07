@@ -1,50 +1,70 @@
 #!/bin/bash
 
-# Automatisiertes Skript zum Bauen und Starten der Docker-Container
+# Debug-Skript für Netzwerk + Build-Arg Kontrolle
 
-# Variablen
-BACKEND_IMAGE="my-backend-api"
-FRONTEND_IMAGE="my-frontend-app"
-BACKEND_CONTAINER="my-backend"
-FRONTEND_CONTAINER="my-frontend"
-BACKEND_PORT=8081
-FRONTEND_PORT=8080
-BACKEND_VOLUME="C:/Users/jonas/workspace/React-Docker/backend/todos.json:/app/todos.json"
+BACKEND_IMAGE="my-backend-api:network-proxy"
+FRONTEND_IMAGE="my-frontend-app:debug"
+BACKEND_CONTAINER="backend-service"
+FRONTEND_CONTAINER="frontend-app"
+NETWORK_NAME="my-app-network"
+BACKEND_VOLUME="my-backend-data"
+BUILD_API_URL="http://localhost:8081/api"
 
-# Backend-Container stoppen und entfernen, falls er existiert
-if docker ps -a | grep -q $BACKEND_CONTAINER; then
-  echo "Stoppe und entferne bestehenden Backend-Container: $BACKEND_CONTAINER"
-  docker stop $BACKEND_CONTAINER
-  docker rm $BACKEND_CONTAINER
+echo "🧼 Bereinige alten Build-Cache..."
+docker builder prune --force >/dev/null
+
+# Netzwerk
+if ! docker network inspect $NETWORK_NAME >/dev/null 2>&1; then
+  echo "🔧 Erstelle Docker-Netzwerk: $NETWORK_NAME"
+  docker network create $NETWORK_NAME
 fi
 
-# Backend-Image bauen
-echo "Baue Backend-Image: $BACKEND_IMAGE"
+# Alte Container stoppen
+for container in $BACKEND_CONTAINER $FRONTEND_CONTAINER; do
+  if docker ps -a --format '{{.Names}}' | grep -q $container; then
+    echo "🛑 Stoppe & entferne $container"
+    docker stop $container
+    docker rm $container
+  fi
+done
+
+# === Backend ===
+echo "🔧 Baue Backend..."
 cd backend
 docker build -t $BACKEND_IMAGE .
 cd ..
 
-# Backend-Container starten
-echo "Starte Backend-Container: $BACKEND_CONTAINER"
-docker run -d --name $BACKEND_CONTAINER -p $BACKEND_PORT:3000 -v $BACKEND_VOLUME $BACKEND_IMAGE
+echo "🚀 Starte Backend..."
+docker run -d \
+  --name $BACKEND_CONTAINER \
+  --network $NETWORK_NAME \
+  -p 8081:3000 \
+  -v $BACKEND_VOLUME:/app/data \
+  $BACKEND_IMAGE
 
-# Frontend-Container stoppen und entfernen, falls er existiert
-if docker ps -a | grep -q $FRONTEND_CONTAINER; then
-  echo "Stoppe und entferne bestehenden Frontend-Container: $FRONTEND_CONTAINER"
-  docker stop $FRONTEND_CONTAINER
-  docker rm $FRONTEND_CONTAINER
-fi
-
-# Frontend-Image bauen
-echo "Baue Frontend-Image: $FRONTEND_IMAGE"
+# === Frontend ===
+echo "🔧 Baue Frontend (DEBUG)..."
 cd frontend
-docker build --build-arg VITE_API_URL=http://localhost:$BACKEND_PORT -t $FRONTEND_IMAGE .
+
+# TEMP: Zeige Build-Arg im Log
+echo "👉 Übergabewert VITE_API_URL: $BUILD_API_URL"
+
+# Füge temporär Debug-Log in Dockerfile ein
+cp Dockerfile Dockerfile.debug
+echo -e "\nRUN echo '📦 VITE_API_URL ist: \$VITE_API_URL'" >> Dockerfile.debug
+
+docker build --no-cache --build-arg VITE_API_URL=$BUILD_API_URL -t $FRONTEND_IMAGE .
+
+rm Dockerfile.debug
 cd ..
 
-# Frontend-Container starten
-echo "Starte Frontend-Container: $FRONTEND_CONTAINER"
-docker run -d --name $FRONTEND_CONTAINER -p $FRONTEND_PORT:80 $FRONTEND_IMAGE
+echo "🚀 Starte Frontend..."
+docker run -d \
+  --name $FRONTEND_CONTAINER \
+  --network $NETWORK_NAME \
+  -p 8080:80 \
+  $FRONTEND_IMAGE
 
-# Status anzeigen
-echo "Docker-Container laufen:"
-docker ps
+echo ""
+echo "✅ Teste im Browser: http://localhost:8080"
+echo "👉 Öffne DevTools > Console: Sollte '🌐 API URL aus import.meta.env:' anzeigen"
