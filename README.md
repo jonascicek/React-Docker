@@ -37,3 +37,15 @@ Beim Bauen des Frontends wird der Pfad `/api` als Umgebungsvariable übergeben:
 --build-arg VITE_API_URL=/api
 
 So kann das React-Frontend relative API-Aufrufe verwenden.
+
+## Datenbankschema
+
+Dieses Repository enthält zusätzlich eine theoretische Ausarbeitung zum relationalen Datenbankschema der Anwendung.
+
+Die Datei beinhaltet:
+
+- ein Datenmodell für `users` und `todos`
+- SQL-Befehle für alle CRUD-Operationen
+- eine Reflexion zu Primärschlüsseln, Fremdschlüsseln, Datenintegrität und dem Einsatz relationaler Datenbanken in containerisierten Umgebungen
+
+Zu finden unter: [`sql-recap.md`](./sql-recap.md)
