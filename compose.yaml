@@ -1,0 +1,58 @@
+services:
+  database:
+    image: postgres:17-alpine
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_db_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-todoapp} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: backend-service
+    restart: always
+    environment:
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}  # Changed from DB_DATABASE to DB_NAME
+    volumes:
+      - backend_data:/app/data
+    expose:
+      - "3000"  # Nur im internen Netzwerk sichtbar
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    container_name: frontend-app
+    restart: always
+    ports:
+      - "8080:80"  # Einziger Port, der nach außen geöffnet wird
+    depends_on:
+      - backend
+
+volumes:
+  postgres_db_data:
+    name: postgres-data
+  backend_data:
+    name: backend-data
+
+networks:
+  default:
+    name: todo-app-network
