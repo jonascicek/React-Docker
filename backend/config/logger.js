@@ -1,4 +1,4 @@
-const winston = require('winston');
+import winston from 'winston';
 
 // Custom format für Zeitstempel und strukturierte Logs
 const customFormat = winston.format.combine(
@@ -42,4 +42,4 @@ logger.logDatabaseConfig = () => {
   });
 };
 
-module.exports = logger;
+export default logger;

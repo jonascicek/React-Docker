@@ -22,6 +22,8 @@ services:
     container_name: backend-service
     restart: always
     environment:
+      PORT: 3000
+      NODE_ENV: development
       DB_HOST: database
       DB_PORT: 5432
       DB_USER: ${POSTGRES_USER}
