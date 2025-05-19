@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  backend:
+    image: jigglyy/backend:latest
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == backend        
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=todoapp
+      - DB_PASSWORD=secret123
+      - DB_NAME=todos
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - todo-app-network
+
+  database:
+    image: postgres:17-alpine
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == database
+    environment:
+      - POSTGRES_USER=todoapp
+      - POSTGRES_PASSWORD=secret123
+      - POSTGRES_DB=todos
+    volumes:
+      - postgres_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - todo-app-network
+
+  frontend:
+    image: jigglyy/frontend:latest
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == frontend        
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - todo-app-network
+      
+volumes:
+  postgres_db_data:
+
+networks:
+  todo-app-network:
+    driver: overlay

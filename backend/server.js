@@ -31,7 +31,18 @@ app.delete('/api/todos/:id', async (req, res) => {
   res.status(204).send();
 });
 
-app.listen(PORT, () => {
-  console.log(`Server läuft auf http://localhost:${PORT}`);
+app.get('/api/health', async (req, res) => {
+  try {
+    // Testabfrage an die Datenbank (z. B. COUNT oder ping)
+    await todosService.getTodos(); // Minimaler Check, ob DB antwortet
+    res.status(200).json({ status: 'ok' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server läuft auf http://0.0.0.0:${PORT}`);
 });
 

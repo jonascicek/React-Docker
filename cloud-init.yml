@@ -1,0 +1,30 @@
+#cloud-config
+
+timezone: Europe/Berlin
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+
+runcmd:
+  - echo "🚀 Installiere Docker..."
+  - curl -fsSL https://get.docker.com -o get-docker.sh
+  - sh get-docker.sh
+  - echo "⚙️ Füge Benutzer ubuntu zur Docker-Gruppe hinzu..."
+  - usermod -aG docker ubuntu
+  - systemctl enable docker
+  - systemctl start docker
+
+users:
+  - default
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+
+ssh_pwauth: true
