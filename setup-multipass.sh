@@ -27,7 +27,7 @@ done
 echo "🏷️ Setze Node Labels (einmalig erforderlich)..."
 multipass exec manager -- docker node update --label-add role=frontend $(multipass exec manager -- docker node ls --format '{{.ID}} {{.Hostname}}' | grep worker1 | cut -d' ' -f1)
 multipass exec manager -- docker node update --label-add role=backend $(multipass exec manager -- docker node ls --format '{{.ID}} {{.Hostname}}' | grep worker2 | cut -d' ' -f1)
-multipass exec manager -- docker node update --label-add role=database $(multipass exec manager -- docker node ls --format '{{.ID}} {{.Hostname}}' | grep manager | cut -d' ' -f1)
+multipass exec manager -- docker node update --label-add role=database $(multipass exec manager -- docker node ls --format '{{.ID}} {{.Hostname}}' | grep worker3 | cut -d' ' -f1)
 
 
 echo "✅ Swarm-Setup abgeschlossen!"

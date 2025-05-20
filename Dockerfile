@@ -15,20 +15,18 @@ COPY . .
 # Produktions-Build erzeugen
 RUN npm run build
 
-#  STAGE 2: RUNTIME
+# STAGE 2: RUNTIME
 FROM nginx:alpine
 
 # Statische Dateien übernehmen
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Healthcheck-Datei hinzufügen
-RUN echo "OK" > /usr/share/nginx/html/healthz.html
+# nginx-Konfiguration kopieren (falls vorhanden)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Port freigeben
 EXPOSE 80
 
-# Healthcheck definieren
+# Healthcheck definieren – prüft, ob die Startseite erreichbar ist
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/healthz.html || exit 1
-
-# CMD ist automatisch korrekt gesetzt durch das Nginx-Image
+  CMD curl -f http://localhost/ || exit 1

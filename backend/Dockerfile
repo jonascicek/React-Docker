@@ -9,8 +9,7 @@ RUN apk add --no-cache curl postgresql-client
 COPY package*.json ./
 
 # Install dependencies including pg
-RUN npm install --production && \
-    npm install pg
+RUN npm ci
 
 COPY . .
 
