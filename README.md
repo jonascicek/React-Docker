@@ -126,3 +126,124 @@ Ob die Healthchecks erfolgreich sind, lässt sich über den Befehl docker-compos
 Außerdem zeigen die Logs (docker-compose logs backend), ob das Backend erfolgreich gestartet ist und eine Verbindung zur Datenbank aufbauen konnte.
 
 ![Screenshot](Screenshot.png)
+
+# 🌟 Docker Swarm Deployment
+
+### 🏗️ Stack-Architektur in Swarm
+
+Unser Stack läuft auf einem Docker Swarm Cluster mit:
+- 1 Manager-Node für die Orchestrierung
+- 3 Worker-Nodes mit spezifischen Rollen:
+  - worker1: Frontend-Service (Nginx)
+  - worker2: Backend-Service (Node.js)
+  - worker3: Datenbank-Service (PostgreSQL)
+
+Jeder Service wird mittels Placement Constraints und Labels auf dedizierten Nodes platziert.
+
+### 🚀 Einrichtung des Swarm Clusters
+
+1. VMs mit Multipass erstellen:
+```bash
+./setup-multipass.sh
+```
+
+2. Images bauen und zu Docker Hub pushen:
+```bash
+# Images bauen
+docker build -t jigglyy/frontend:latest ./frontend
+docker build -t jigglyy/backend:latest ./backend
+
+# Zur Registry pushen
+docker push jigglyy/frontend:latest
+docker push jigglyy/backend:latest
+```
+
+3. Stack deployen:
+```bash
+./deploy.sh
+```
+
+### 🔍 Deployment überprüfen
+
+Service-Status und Platzierung prüfen:
+```bash
+# Service-Status anzeigen
+multipass exec manager -- docker service ls
+
+# Detaillierte Service-Platzierung prüfen
+multipass exec manager -- docker stack ps myapp
+
+# Service-Logs anzeigen
+multipass exec manager -- docker service logs myapp_frontend
+multipass exec manager -- docker service logs myapp_backend
+multipass exec manager -- docker service logs myapp_database
+```
+
+### 🐛 Debug-Leitfaden
+
+1. Node-Labels prüfen:
+```bash
+multipass exec manager -- docker node ls --filter role=manager
+multipass exec manager -- docker node inspect worker1 --format '{{.Spec.Labels}}'
+```
+
+2. Netzwerk-Konnektivität verifizieren:
+```bash
+multipass exec manager -- docker network ls
+multipass exec manager -- docker network inspect myapp_todo-app-network
+```
+
+3. Service-Gesundheit überwachen:
+```bash
+multipass exec manager -- docker service inspect myapp_database --format '{{.Status.ContainerStatus.HealthStatus}}'
+```
+
+### 🤔 Reflexionsfragen
+
+**F: Wie stellt dein Stack eine robuste Service-Platzierung sicher?**
+A: Unser Stack verwendet Docker Swarm Placement Constraints und Node-Labels:
+```yaml
+deploy:
+  placement:
+    constraints:
+      - node.role == worker
+      - node.labels.role == frontend
+```
+
+**F: Wie handhabst du Service Discovery im Swarm?**
+A: Die Services kommunizieren über Docker's eingebaute DNS-Auflösung. Die Nginx-Konfiguration im Frontend-Container löst Backend-Services über ihre Service-Namen auf:
+```nginx
+location /api/ {
+    resolver 127.0.0.11 valid=30s;
+    set $backend "backend";
+    proxy_pass http://$backend:3000/;
+}
+```
+
+**F: Welche Monitoring- und Debugging-Strategien verwendest du?**
+A: Wir setzen auf:
+- Health Checks für alle Services
+- Service-Log-Überwachung
+- Node- und Service-Inspektion
+- Netzwerk-Konnektivitätsprüfung
+
+### 🧪 CI/CD-Überlegungen
+
+Für Produktiv-Deployments empfehlen wir:
+1. Automatisierte Image-Builds
+2. Versions-Tagging
+3. Blue-Green Deployments
+4. Monitoring-Setup
+
+### 📚 Repository-Struktur
+
+```
+.
+├── .gitignore               # Schließt node_modules, env-Dateien aus
+├── .dockerignore           # Optimiert Builds
+├── docker-stack.yml        # Swarm Deployment-Konfiguration
+├── setup-multipass.sh      # VM Setup-Skript
+├── deploy.sh               # Deployment-Skript
+└── README.md              # Diese Dokumentation
+```
+
