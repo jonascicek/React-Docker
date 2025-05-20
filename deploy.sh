@@ -1,37 +1,36 @@
 #!/bin/bash
+set -e
 
-# Configuration
 STACK_NAME="myapp"
 MANAGER_IP=$(multipass info manager | grep IPv4 | awk '{print $2}')
 
-# Initialize Swarm on manager (if not already initialized)
-echo "🚀 Checking Swarm status..."
+echo "🚀 Swarm-Status prüfen..."
 if ! multipass exec manager -- docker info | grep -q "Swarm: active"; then
-    echo "Initializing new Swarm..."
+    echo "📌 Swarm initialisieren..."
     multipass exec manager -- docker swarm init --advertise-addr $MANAGER_IP
-    
-    # Get join token for workers
+
     JOIN_TOKEN=$(multipass exec manager -- docker swarm join-token worker -q)
-    
-    # Join workers
-    echo "👥 Adding workers..."
-    multipass exec worker1 -- docker swarm leave --force 2>/dev/null || true
-    multipass exec worker2 -- docker swarm leave --force 2>/dev/null || true
-    multipass exec worker1 -- docker swarm join --token $JOIN_TOKEN ${MANAGER_IP}:2377
-    multipass exec worker2 -- docker swarm join --token $JOIN_TOKEN ${MANAGER_IP}:2377
+
+    echo "👥 Worker hinzufügen..."
+    for worker in worker1 worker2 worker3; do
+        multipass exec $worker -- docker swarm leave --force || true
+        multipass exec $worker -- docker swarm join --token $JOIN_TOKEN ${MANAGER_IP}:2377
+    done
 else
-    echo "Swarm already initialized"
+    echo "✅ Swarm ist bereits aktiv."
 fi
 
-# Deploy stack
-echo "📦 Deploying stack..."
+echo "🧹 Entferne alten Stack (falls vorhanden)..."
+multipass exec manager -- docker stack rm $STACK_NAME || true
+echo "⏳ Warte 10 Sekunden, bis Swarm aufräumt..."
+sleep 10
+
+echo "📦 Stack wird frisch deployed..."
 multipass transfer docker-stack.yml manager:docker-stack.yml
 multipass exec manager -- docker stack deploy -c docker-stack.yml $STACK_NAME
 
-# Wait for services to start
-echo "⏳ Waiting for services to start..."
-sleep 5
+echo "⏳ Warte 30 Sekunden auf Services..."
+sleep 30
 
-# Show status
-echo "✨ Deployment complete"
+echo "🔍 Aktueller Service-Status:"
 multipass exec manager -- docker service ls
