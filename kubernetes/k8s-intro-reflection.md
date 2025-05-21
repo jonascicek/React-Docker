@@ -24,4 +24,4 @@ Ich habe als Erstes `kubectl cluster-info` verwendet. Wenn da eine Adresse zum K
 
 Kubernetes funktioniert nach dem Prinzip: „So soll es aussehen“ statt „Mach genau das“. Das heißt, ich beschreibe in einer YAML-Datei den gewünschten Zustand – z. B. dass ein bestimmter Pod mit drei Replikaten laufen soll – und Kubernetes kümmert sich dann automatisch darum, dass dieser Zustand auch wirklich erreicht und aufrechterhalten wird.
 
-![Screenshotabgabe](./kubernetes/Kubectl.png)
+![Screenshotabgabe](./Kubectl.png)
