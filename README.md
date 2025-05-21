@@ -247,3 +247,17 @@ Für Produktiv-Deployments empfehlen wir:
 └── README.md              # Diese Dokumentation
 ```
 
+## Aufgabe: Lokales Kubernetes Cluster aufsetzen
+
+### Lernziele
+- Verstehen, wie ein Kubernetes Cluster lokal eingerichtet wird
+- Kennenlernen der Rolle der Control Plane und der Worker Nodes
+- Praktische Anwendung von `kubectl` zur Cluster-Interaktion
+- Verinnerlichen der deklarativen Philosophie von Kubernetes
+
+### Speicherort der Abgabe
+Die Reflexion zu dieser Aufgabe befindet sich unter:
+
+```plaintext
+/kubernetes/k8s-intro-reflection.md
+```
