@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  namespace: myapp
+  labels:
+    app: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+        - name: database
+          image: postgres:17-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "INFO: Starting original PostgreSQL entrypoint..."
+              exec /usr/local/bin/docker-entrypoint.sh postgres
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "meinnotizblockuser"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: "notizblock_prod_db"
+          volumeMounts:
+            - name: db-persistent-storage # Name des Volumes, das wir unten definieren
+              mountPath: /var/lib/postgresql/data # Standard-Datenverzeichnis von PostgreSQL
+            - name: db-schema-volume
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "0.5"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          readinessProbe:
+            exec:
+              command:
+                [
+                  "pg_isready",
+                  "-U",
+                  "meinnotizblockuser",
+                  "-d",
+                  "notizblock_prod_db",
+                  "-h",
+                  "localhost",
+                ]
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 5
+          livenessProbe:
+            exec:
+              command:
+                [
+                  "pg_isready",
+                  "-U",
+                  "meinnotizblockuser",
+                  "-d",
+                  "notizblock_prod_db",
+                  "-h",
+                  "localhost",
+                ]
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+      volumes:
+        - name: db-persistent-storage # Definiere das Volume basierend auf dem PVC
+          persistentVolumeClaim:
+            claimName: db-pvc # Muss mit dem Namen deines PVC übereinstimmen
+        - name: db-schema-volume
+          configMap:
+            name: db-schema

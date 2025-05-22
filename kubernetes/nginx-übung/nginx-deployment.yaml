@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-app-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-example
+  template:
+    metadata:
+      labels:
+        app: nginx-example
+    spec:
+      containers:
+        - name: nginx
+          image: jigglyy/nginx-example:v2 # Ersetzen Sie IHR_DOCKERHUB_USERNAME
+          ports:
+            - containerPort: 80
