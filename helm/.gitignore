@@ -67,3 +67,5 @@ values-*.yaml
 *-values.yaml
 secret.yaml
 secrets.yaml
+*-secret.yaml
+*-secrets.yaml

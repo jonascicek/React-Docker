@@ -3,10 +3,10 @@
 ## Current State
 
 ### Helm Releases
-![Helm List](./docs/helmlist.png)
+![Helm List](./helmlist.png)
 
 ### All Kubernetes Resources
-![Kubectl Get All](./docs/kubectlgetall.png)
+![Kubectl Get All](./kubectlgetall.png)
 
 ### Deployments
-![Kubectl Get Deployments](./docs/kubectlgetdeployment.png)
+![Kubectl Get Deployments](./kubectlgetdeployment.png)
