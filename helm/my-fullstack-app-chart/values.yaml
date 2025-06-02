@@ -1,0 +1,39 @@
+frontend:
+  replicaCount: 1
+  image:
+    repository: jigglyy/frontend
+    tag: latest
+  service:
+    port: 80
+
+backend:
+  replicaCount: 1
+  image:
+    repository: jigglyy/backend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 3000
+  config:
+    nodeEnv: development
+    db:
+      host: my-fullstack-app-database
+      port: 5432
+      user: todoapp
+      name: tododb
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  host: my-app.local
+  paths:
+    frontend: /
+    backendApi: /api
+
+database:
+  auth:
+    username: todoapp
+    password: "CHANGEME"
+    database: tododb
+  persistence:
+    size: 10Gi

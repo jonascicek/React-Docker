@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-init-db  # Simplified name
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"  # Add before-hook-creation
+  labels:
+    {{- include "my-fullstack-app-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: init-db
+spec:
+  template:
+    spec:
+      containers:
+        - name: init-db
+          image: postgres:17-alpine
+          command: [ "sh", "-c" ]
+          args:
+            - |
+              echo "Warte auf Datenbank..." && \
+              until pg_isready -h {{ .Values.backend.config.db.host }} -p {{ .Values.backend.config.db.port }} -U {{ .Values.database.auth.username }}; do
+                echo "Datenbank nicht bereit – warte..." && sleep 2
+              done && \
+              echo "Datenbank ist bereit – starte Initialisierung!" && \
+              # Drop table if exists to ensure clean state
+              psql -h {{ .Values.backend.config.db.host }} \
+                   -U {{ .Values.database.auth.username }} \
+                   -d {{ .Values.database.auth.database }} \
+                   -c "DROP TABLE IF EXISTS todos;" && \
+              # Create table with correct schema
+              psql -h {{ .Values.backend.config.db.host }} \
+                   -U {{ .Values.database.auth.username }} \
+                   -d {{ .Values.database.auth.database }} \
+                   -c "CREATE TABLE todos (
+                          id SERIAL PRIMARY KEY,
+                          text TEXT NOT NULL,
+                          is_done BOOLEAN DEFAULT FALSE,
+                          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                       );" && \
+              echo "Datenbank-Initialisierung abgeschlossen!"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "my-fullstack-app-chart.fullname" . }}-database
+                  key: password
+      restartPolicy: OnFailure

@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+package-lock.json
+
+# Build outputs
+dist/
+build/
+*.local
+
+# Environment files
+.env
+.env.*
+!.env.example
+*.env
+
+# Helm specific
+charts/*/charts/
+*.tgz
+.helm/
+Chart.lock
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+.kube/
+
+# IDE and Editor files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs and debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log
+
+# Testing and coverage
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Development artifacts
+*.tmp
+*.temp
+.cache/
+.eslintcache
+.npm/
+
+# Production secrets
+values-*.yaml
+*-values.yaml
+secret.yaml
+secrets.yaml
